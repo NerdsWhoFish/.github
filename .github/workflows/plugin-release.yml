@@ -1,0 +1,91 @@
+name: plugin-release
+
+# The one release workflow every Dusk plugin calls. Copied CI drifts silently,
+# and a marketplace whose plugins each package themselves slightly differently
+# is one where installing is different every time.
+on:
+  workflow_call:
+    inputs:
+      scope:
+        description: What to cut
+        type: string
+        default: Release
+      bump:
+        description: Which part of the version to bump
+        type: string
+        default: patch
+      go-version-file:
+        type: string
+        default: go.mod
+
+permissions: {}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      # Releasing from a topic branch produces a tag whose history is not on
+      # main, which is unpickable afterwards.
+      - name: Refuse to release off main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Release from main. This ran on ${{ github.ref }}."
+          exit 1
+
+      - uses: actions/checkout@v5
+        with:
+          # Release notes are built from the commit log, which a shallow clone
+          # does not have.
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: ${{ inputs.go-version-file }}
+
+      - name: Test
+        run: go test -race ./...
+
+      - name: Work out the version
+        id: version
+        run: |
+          latest=$(git tag --list 'v*' --sort=-v:refname | head -n1)
+          latest=${latest:-v0.0.0}
+          IFS=. read -r major minor patch <<EOF
+          ${latest#v}
+          EOF
+
+          case "${{ inputs.bump }}" in
+            major) major=$((major + 1)); minor=0; patch=0 ;;
+            minor) minor=$((minor + 1)); patch=0 ;;
+            *)     patch=$((patch + 1)) ;;
+          esac
+
+          version="v${major}.${minor}.${patch}"
+          if [ "${{ inputs.scope }}" = "Release Candidate" ]; then
+            version="${version}-rc.$(git rev-list --count HEAD)"
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      # Tagged before GoReleaser rather than by it, so the version in the
+      # binary and the version in the tag cannot disagree.
+      - name: Tag
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git tag -a '${{ steps.version.outputs.version }}' -m '${{ steps.version.outputs.version }}'
+          git push origin '${{ steps.version.outputs.version }}'
+
+      - uses: goreleaser/goreleaser-action@v6
+        with:
+          version: "~> v2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # A tag with no release is worse than no tag: the next run computes the
+      # version from it and skips a number nobody can install.
+      - name: Untag a failed release
+        if: failure()
+        run: git push --delete origin '${{ steps.version.outputs.version }}' || true
