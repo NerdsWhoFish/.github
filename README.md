@@ -1,4 +1,4 @@
-# FetchHQ
+# NerdsWhoFish
 
 Shared GitHub configuration for the Dusk project.
 
