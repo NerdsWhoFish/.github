@@ -8,7 +8,7 @@
 
 <p align="center">
   <strong>Small business software, built in Ohio.</strong><br>
-  Websites, infrastructure, and open source tools from a family-run team that picks up the phone.
+  Websites, infrastructure, and open source tools from a family-run team.
 </p>
 
 <p align="center">
@@ -19,7 +19,7 @@
   <a href="https://www.nerdswhofish.com/#contact">Work with us</a>
 </p>
 
-## Open source, on purpose
+## Open source projects
 
 We build the tools we wish existed, use them in real systems, and publish the useful ones. The result is opinionated software with clear documentation and the rough edges already found.
 
