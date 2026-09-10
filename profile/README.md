@@ -19,6 +19,12 @@
   <a href="https://www.nerdswhofish.com/#contact">Work with us</a>
 </p>
 
+## What we stand for
+
+**Don't be greedy. Don't be evil.** We care about people and the planet, learn without blame, give direct constructive feedback, take responsibility for every line of AI output, and hold our engineering to reviewable standards.
+
+Our [public philosophies](https://github.com/NerdsWhoFish/philosophies) guide the work we accept and how we deliver it. [Read them on our website](https://www.nerdswhofish.com/philosophies/) or [follow their history on GitHub](https://github.com/NerdsWhoFish/philosophies/commits/main/).
+
 ## Open source projects
 
 We build the tools we wish existed, use them in real systems, and publish the useful ones. The result is opinionated software with clear documentation and the rough edges already found.
